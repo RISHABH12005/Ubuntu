@@ -15,13 +15,13 @@
   "portsAttributes": {
     "6080": {
       "label": "Ubuntu GNOME Desktop (noVNC)",
-      "onAutoForward": "openBrowser",
+      "onAutoForward": "notify",
       "visibility": "private",
       "protocol": "http"
     }
   },
   "postCreateCommand": "bash .devcontainer/setup-gnome.sh",
-  "postStartCommand": "bash .devcontainer/start-gnome.sh || echo 'GNOME desktop did not start; Codespace remains available. Run bash .devcontainer/start-gnome.sh to retry.'",
+  "postStartCommand": "bash .devcontainer/start-gnome.sh || echo 'GNOME desktop startup failed; Codespace is still available. Inspect ~/.local/state/ubuntu-gnome/*.log.'",
   "remoteUser": "vscode",
   "containerEnv": {
     "DISPLAY": ":1",
