@@ -1,40 +1,43 @@
 # Ubuntu 24.04 GNOME Desktop in GitHub Codespaces
 
-This repository configures an Ubuntu 24.04 Codespaces container with Ubuntu GNOME Shell and browser access through noVNC.
+This repository configures a browser-accessible Ubuntu GNOME desktop in a GitHub Codespaces container.
 
-The desktop uses Xvfb for its virtual X11 display and x11vnc for a loopback-only VNC connection. This avoids relying on TigerVNC's X server for GNOME.
+## Architecture
 
-## Start
+- Ubuntu 24.04 base container
+- Ubuntu GNOME session (`gnome-session --session=ubuntu`)
+- Xvfb virtual X11 display at `:1`
+- x11vnc bound to container loopback at `127.0.0.1:5901`
+- noVNC browser gateway at port `6080` (the only forwarded port; keep it private)
 
-1. Create or open a Codespace on the `main` branch.
-2. Rebuild the container after changing the Dev Container configuration so the new packages are installed.
-3. Wait for the GNOME package installation to finish.
-4. The desktop attempts to start automatically. If it does not, run:
+## First launch
 
-   ```bash
-   bash .devcontainer/start-gnome.sh
-   ```
+1. Create or open a Codespace on `main`.
+2. Rebuild the container after changing Dev Container configuration. This runs `.devcontainer/setup-gnome.sh` to install desktop packages.
+3. The desktop starts through `postStartCommand`. Codespaces remains available even if the desktop session fails.
+4. Open the **Ports** tab and open private port **6080**.
+5. Visit `/vnc.html` and select **Connect**.
 
-5. Open the **Ports** tab and open the private forwarded port **6080**.
-6. Navigate to `/vnc.html` if the noVNC page does not open automatically, then click **Connect**.
+## Start and stop
 
-## Commands
+Start: `bash .devcontainer/start-gnome.sh`
 
-- Start: `bash .devcontainer/start-gnome.sh`
-- Stop: `bash .devcontainer/stop-gnome.sh`
+Stop: `bash .devcontainer/stop-gnome.sh`
 
-## Port design
+## Logs
 
-- `6080/tcp`: noVNC web interface; the only forwarded port and must remain **Private**.
-- `5901/tcp`: x11vnc endpoint bound to loopback inside the container; do not forward it.
+All service logs are stored in `~/.local/state/ubuntu-gnome/`: `xvfb.log`, `session.log`, `x11vnc.log`, and `novnc.log`.
 
 ## Diagnostics
 
-- GNOME Shell log: `~/.local/state/ubuntu-gnome/gnome-shell.log`
-- Xvfb log: `~/.local/state/ubuntu-gnome/xvfb.log`
-- VNC log: `~/.local/state/ubuntu-gnome/x11vnc.log`
-- noVNC log: `~/.local/state/ubuntu-gnome/novnc.log`
+```bash
+pgrep -af 'Xvfb|gnome-session|gnome-shell|x11vnc|novnc_proxy' || true
+ss -ltn | grep -E ':5901|:6080' || true
+for f in ~/.local/state/ubuntu-gnome/*.log; do
+  [ -f "$f" ] && { echo "===== $f"; tail -100 "$f"; }
+done
+```
 
 ## Limitations
 
-This is a browser-accessible desktop session inside a Codespaces container, not a full Ubuntu virtual machine. Hardware acceleration, audio, systemd/logind, suspend and hardware access are limited. Codespaces must remain running while the desktop is in use.
+A Codespaces container is not a full virtual machine. Hardware acceleration, audio, systemd/logind, suspend, and hardware device access may be limited. The Codespace must remain running while the desktop is in use.
