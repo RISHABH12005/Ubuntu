@@ -1,5 +1,5 @@
 {
-  "name": "Ubuntu GNOME Desktop",
+  "name": "Ubuntu 24.04 GNOME Desktop",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
@@ -9,18 +9,13 @@
     },
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  "forwardPorts": [
-    6080,
-    5901
-  ],
+  "forwardPorts": [6080],
   "portsAttributes": {
-    "5901": {
-      "label": "VNC (optional)",
-      "onAutoForward": "notify"
-    },
     "6080": {
       "label": "Ubuntu GNOME Desktop (noVNC)",
-      "onAutoForward": "openBrowser"
+      "onAutoForward": "openBrowser",
+      "visibility": "private",
+      "protocol": "http"
     }
   },
   "postCreateCommand": "bash .devcontainer/setup-gnome.sh",
