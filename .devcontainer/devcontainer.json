@@ -9,7 +9,9 @@
     },
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  "forwardPorts": [6080],
+  "forwardPorts": [
+    6080
+  ],
   "portsAttributes": {
     "6080": {
       "label": "Ubuntu GNOME Desktop (noVNC)",
@@ -19,7 +21,7 @@
     }
   },
   "postCreateCommand": "bash .devcontainer/setup-gnome.sh",
-  "postStartCommand": "bash .devcontainer/start-gnome.sh",
+  "postStartCommand": "bash .devcontainer/start-gnome.sh || echo 'GNOME desktop did not start; Codespace remains available. Run bash .devcontainer/start-gnome.sh to retry.'",
   "remoteUser": "vscode",
   "containerEnv": {
     "DISPLAY": ":1",
