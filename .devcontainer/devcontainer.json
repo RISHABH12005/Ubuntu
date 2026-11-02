@@ -1,0 +1,38 @@
+{
+  "name": "Ubuntu GNOME Desktop",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefault": false,
+      "username": "vscode"
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "forwardPorts": [
+    6080,
+    5901
+  ],
+  "portsAttributes": {
+    "5901": {
+      "label": "VNC (optional)",
+      "onAutoForward": "notify"
+    },
+    "6080": {
+      "label": "Ubuntu GNOME Desktop (noVNC)",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup-gnome.sh",
+  "postStartCommand": "bash .devcontainer/start-gnome.sh",
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "DISPLAY": ":1",
+    "VNC_PORT": "5901",
+    "NOVNC_PORT": "6080"
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb"
+  }
+}
