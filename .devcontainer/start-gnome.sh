@@ -4,16 +4,24 @@ set -euo pipefail
 export DISPLAY=:1
 mkdir -p "$HOME/.vnc"
 
-if pgrep -u "$(id -u)" Xtigervnc >/dev/null 2>&1; then
-  echo "VNC display is already running."
-else
-  vncserver :1 -localhost yes -geometry 1600x900 -depth 24 -SecurityTypes None
+# Remove stale display locks after an interrupted VNC session.
+if ! pgrep -u "$(id -u)" Xtigervnc >/dev/null 2>&1; then
+  rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
+  vncserver :1 -localhost yes -geometry 1600x900 -depth 24 \
+    -SecurityTypes None -xstartup "$HOME/.vnc/xstartup"
 fi
 
-# noVNC serves the VNC display on port 6080.
-if ! pgrep -af 'novnc_proxy.*6080' >/dev/null 2>&1; then
+for i in $(seq 1 20); do
+  if ss -ltn 2>/dev/null | grep -q ':5901'; then break; fi
+  sleep 1
+done
+
+if ! pgrep -af '[n]ovnc_proxy.*6080' >/dev/null 2>&1; then
   nohup /usr/share/novnc/utils/novnc_proxy --listen 6080 --vnc localhost:5901 \
     > "$HOME/.vnc/novnc.log" 2>&1 &
 fi
 
-echo "GNOME desktop endpoint: http://localhost:6080/vnc.html"
+sleep 2
+echo "VNC status:"
+ss -ltn | grep -E ':5901|:6080' || true
+echo "Open forwarded port 6080 in Codespaces, then click Connect."
