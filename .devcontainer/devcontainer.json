@@ -1,0 +1,16 @@
+{
+  "name": "Ubuntu 24.04 XFCE Desktop",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": {
+      "label": "XFCE desktop",
+      "onAutoForward": "openBrowser",
+      "visibility": "private"
+    }
+  },
+  "postStartCommand": "/usr/local/bin/start-desktop",
+  "remoteUser": "vscode"
+}

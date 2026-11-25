@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mkdir -p "$HOME/.vnc"
+cat > "$HOME/.vnc/xstartup" <<'EOF'
+#!/bin/sh
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+export XDG_SESSION_TYPE=x11
+
+desktop="$(zenity --list \
+    --title='Choose desktop environment' \
+    --text='Select a desktop for this VNC session:' \
+    --column='Desktop' \
+    'XFCE' 'KDE Plasma' \
+    --height=200 --width=400)" || exit 0
+
+case "$desktop" in
+    XFCE)
+        exec dbus-run-session -- startxfce4
+        ;;
+    'KDE Plasma')
+        exec dbus-run-session -- startplasma-x11
+        ;;
+    *)
+        exit 1
+        ;;
+esac
+EOF
+chmod +x "$HOME/.vnc/xstartup"
+
+auth_file="$HOME/.vnc/websockify-auth"
+if [[ ! -s "$auth_file" ]]; then
+    umask 077
+    printf 'vscode:%s\n' "$(python3 -c 'import secrets; print(secrets.token_hex(32))')" > "$auth_file"
+fi
+chmod 600 "$auth_file"
+auth_source="$(cat "$auth_file")"
+
+if ! vncserver -list | grep -q '5901'; then
+    vncserver :1 -localhost yes -SecurityTypes None -geometry 1440x900 -depth 24
+fi
+
+if ! ss -ltn | grep -q ':6080'; then
+    nohup websockify --web=/usr/share/novnc --web-auth \
+        --auth-plugin=BasicHTTPAuth --auth-source="$auth_source" \
+        127.0.0.1:6080 localhost:5901 \
+        >/tmp/novnc-websockify.log 2>&1 </dev/null &
+fi
