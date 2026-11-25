@@ -12,8 +12,8 @@ desktop="$(zenity --list \
     --title='Choose desktop environment' \
     --text='Select a desktop for this VNC session:' \
     --column='Desktop' \
-    'XFCE' 'KDE Plasma' \
-    --height=200 --width=400)" || exit 0
+    'XFCE' 'KDE Plasma' 'GNOME' \
+    --height=240 --width=400)" || exit 0
 
 case "$desktop" in
     XFCE)
@@ -21,6 +21,9 @@ case "$desktop" in
         ;;
     'KDE Plasma')
         exec dbus-run-session -- startplasma-x11
+        ;;
+    GNOME)
+        exec dbus-run-session -- gnome-session --session=gnome
         ;;
     *)
         exit 1
@@ -30,7 +33,16 @@ EOF
 chmod +x "$HOME/.vnc/xstartup"
 
 auth_file="$HOME/.vnc/websockify-auth"
-if [[ ! -s "$auth_file" ]]; then
+auth_user="${NOVNC_USERNAME:-}"
+auth_password="${NOVNC_PASSWORD:-}"
+if [[ -n "$auth_user" || -n "$auth_password" ]]; then
+    if [[ -z "$auth_user" || -z "$auth_password" || "$auth_user" == *:* || "$auth_user" == *$'\n'* || "$auth_password" == *$'\n'* ]]; then
+        printf '%s\n' 'Set both NOVNC_USERNAME and NOVNC_PASSWORD; the username must not contain colons, and neither value may contain newlines.' >&2
+        exit 1
+    fi
+    umask 077
+    printf '%s:%s\n' "$auth_user" "$auth_password" > "$auth_file"
+elif [[ ! -s "$auth_file" ]]; then
     umask 077
     printf 'vscode:%s\n' "$(python3 -c 'import secrets; print(secrets.token_hex(32))')" > "$auth_file"
 fi

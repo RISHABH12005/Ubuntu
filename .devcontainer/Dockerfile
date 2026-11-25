@@ -7,6 +7,9 @@ RUN apt-get update \
         ca-certificates \
         curl \
         dbus-x11 \
+        gnome-control-center \
+        gnome-session \
+        gnome-terminal \
         gnupg \
         kde-plasma-desktop \
         novnc \
